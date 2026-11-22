@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>RobotOS SmartHome</title>
+<style>
+:root{--bg:#0f1420;--p:#171e2e;--t:#e6ebf5;--m:#8b97ad;--a:#4cc9a0;--w:#f0b429;--e:#ef5b5b;--b:#2a3550}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--t);font:14px system-ui,sans-serif}
+header{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:var(--p);border-bottom:1px solid var(--b)}
+main{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:10px;padding:10px}
+.w{background:var(--p);border:1px solid var(--b);border-radius:8px;overflow:hidden}
+.w h3{margin:0;padding:6px 10px;font-size:13px;background:#1e2740}
+.c{padding:8px 10px;max-height:250px;overflow:auto}
+table{width:100%;border-collapse:collapse;font-size:12px}td,th{padding:3px 4px;text-align:left;border-bottom:1px solid var(--b)}
+button,select{background:#24304d;color:var(--t);border:1px solid var(--b);border-radius:5px;padding:4px 8px;margin:2px;font-size:12px}
+#term{font:12px monospace;height:190px;overflow:auto;white-space:pre-wrap;color:#cfe}
+input{width:100%;background:#0b0f19;color:var(--a);border:0;border-top:1px solid var(--b);padding:9px;font:13px monospace}
+#mem{display:grid;grid-template-columns:repeat(16,1fr);gap:2px}#mem i{height:18px;border-radius:2px;background:#26304a}
+.ok{color:var(--a)}.bad{color:var(--e)}.wn{color:var(--w)}small{color:var(--m)}
+</style></head><body>
+<header><b>RobotOS SmartHome</b><span id="st"></span></header>
+<main>
+<section class="w"><h3>Terminal</h3><div class="c" id="term"></div><input id="cmd" placeholder="escribe help" autocomplete="off"></section>
+<section class="w"><h3>Procesos y scheduler</h3><div class="c"><button onclick="sh('create proc'+K.pid+' '+(1+K.pid%3)+' 2')">Crear proceso</button>
+<select id="sch" onchange="sh('sched '+this.value)"><option value="prio">Prioridad</option><option value="rr">Round Robin</option></select><div id="ps"></div></div></section>
+<section class="w"><h3>Mapa de memoria (64 bloques de 16 MB)</h3><div class="c"><div id="mem"></div><small id="ms"></small></div></section>
+<section class="w"><h3>Explorador de archivos</h3><div class="c"><button onclick="sh('touch /config/nota'+K.files.length+'.txt')">Crear archivo</button><div id="fs"></div></div></section>
+<section class="w"><h3>Dispositivos</h3><div class="c" id="dv"></div></section>
+<section class="w"><h3>Laboratorios: deadlock y RTOS</h3><div class="c"><button onclick="sh('deadlock')">Generar deadlock</button><button onclick="sh('rtos')">Ejecutar tareas RTOS</button><div id="lab"></div></div></section>
+<section class="w"><h3>Eventos del kernel</h3><div class="c" id="ev"></div></section>
+</main>
+<script>
+const $=s=>document.querySelector(s),sleep=t=>new Promise(r=>setTimeout(r,t));
+const K={booted:false,tick:0,pid:1,procs:[],sched:'prio',q:2,quantum:0,ev:[],files:[],mem:[],dev:[],rt:[],dl:null,mc:1,boots:0};
+const log=(l,m)=>{K.ev.unshift(new Date().toLocaleTimeString()+' ['+l+'] '+m);K.ev.length=50;draw()};
+const out=t=>{const e=$('#term');e.textContent+=t+'\n';e.scrollTop=1e9};
+const owner=o=>K.mem.indexOf(o)>=0;
+function alloc(k,o){for(let i=0;i<=64-k;i++)if(K.mem.slice(i,i+k).every(x=>x===null)){for(let j=i;j<i+k;j++)K.mem[j]=o;return i}return -1}
+const free=o=>{const n=K.mem.filter(x=>x===o).length;K.mem=K.mem.map(x=>x===o?null:x);return n};
+async function boot(){K.booted=false;K.procs=[];K.pid=1;K.tick=0;K.mc=1;K.dl=null;K.mem=Array(64).fill(null);K.files=['/system/','/config/','/logs/','/users/'];
+K.dev=['Luces','Sensor de movimiento','Cámara','Cerradura','Sensor de temperatura','Climatización'].map(n=>({n,s:'ONLINE'}));
+K.rt=[{n:'lectura_temp',dl:40,c:20},{n:'alarma_cerradura',dl:20,c:10},{n:'stream_camara',dl:150,c:90}];
+for(let i=0;i<8;i++)K.mem[i]='kernel';K.boots++;
+for(const s of ['Boot Manager: iniciando ciclo '+K.boots,'Kernel Core: cargado','System State: RUNNING','Driver Manager: 6 dispositivos','Event Engine: listo','File System: montado']){log('BOOT',s);await sleep(120)}
+K.booted=true;log('INFO','Arranque completo')}
+function fin(p,why){p.state='TERMINATED';const n=free(p.pid);log('PROC','PID '+p.pid+' '+why+', memoria liberada: '+n+' bloques')}
+const P=pid=>{const p=K.procs.find(x=>x.pid==pid);if(!p)throw Error('PID '+pid+' no existe');return p};
+const hasCycle=()=>{const d=K.dl;if(!d)return null;const g={};for(const p in d.w){g[p]=Object.keys(d.h).find(q=>d.h[q]===d.w[p])}
+for(const s in g){let c=s,seen=[];while(c&&!seen.includes(c)){seen.push(c);c=g[c]}if(c&&c===s)return seen}return null};
+const SYS={
+help(){return'create <n> [prio 1-3] [bloques] | run <pid> | kill <pid> | ps | sched prio|rr | mem | alloc <bloques> | free <M#> | touch <ruta> | ls | devices | disconnect <n> | connect <n> | deadlock | rtos | logs | reboot | clear'},
+create(n='proc',pr=2,m=1){const k=Math.max(1,+m),pid=K.pid;if(alloc(k,pid)<0)throw Error('Memoria insuficiente');K.pid++;K.procs.push({pid,n,prio:+pr,state:'NEW',rem:6,cpu:0,mem:k,last:0});log('PROC','Proceso '+n+' creado con PID '+pid);return'Proceso '+n+' creado con PID '+pid+' en el kernel'},
+run(pid){const p=P(pid);if(p.state==='TERMINATED')throw Error('El proceso terminó');p.state='READY';log('PROC','PID '+pid+' listo para ejecutar');return'PID '+pid+' -> READY'},
+kill(pid){fin(P(pid),'finalizado');return'PID '+pid+' finalizado'},
+ps(){return K.procs.map(p=>p.pid+' '+p.n+' '+p.state+' prio='+p.prio+' cpu='+p.cpu+' mem='+p.mem).join('\n')||'sin procesos'},
+sched(m){if(!['prio','rr'].includes(m))throw Error('usa prio o rr');K.sched=m;$('#sch').value=m;log('SCHED','Scheduler cambiado a '+(m==='rr'?'Round Robin':'Prioridad'));return'Scheduler: '+m},
+mem(){return K.mem.filter(x=>x===null).length+' bloques libres de 64'},
+alloc(n=1){const o='M'+K.mc,at=alloc(+n,o);if(at<0)throw Error('Memoria insuficiente');K.mc++;log('MEM','Asignados '+n+' bloques ('+o+') desde '+at);return o+': '+n+' bloques desde el '+at},
+free(o){const n=free(o);if(!n)throw Error('No existe '+o);log('MEM','Liberado '+o);return o+' liberado ('+n+' bloques)'},
+touch(f){if(!f||f[0]!=='/')throw Error('usa una ruta, por ejemplo /config/a.txt');if(K.files.includes(f))throw Error('ya existe');K.files.push(f);log('FS','Archivo creado: '+f);return'Creado '+f},
+ls(){return K.files.join('\n')},
+devices(){return K.dev.map((d,i)=>i+' '+d.n+' '+d.s).join('\n')},
+disconnect(i){const d=K.dev[i];if(!d)throw Error('dispositivo inválido');d.s='OFFLINE';log('EVENT',d.n+' desconectado, estado OFFLINE');return d.n+' -> OFFLINE'},
+connect(i){const d=K.dev[i];if(!d)throw Error('dispositivo inválido');d.s='ONLINE';log('EVENT',d.n+' reconectado');return d.n+' -> ONLINE'},
+deadlock(){const a=SYS.create('proc_A',2,1).match(/PID (\d+)/)[1],b=SYS.create('proc_B',2,1).match(/PID (\d+)/)[1];
+K.dl={h:{[a]:'R1',[b]:'R2'},w:{[a]:'R2',[b]:'R1'}};P(a).state='WAITING';P(b).state='WAITING';const c=hasCycle();
+log('DEADLOCK','Bloqueo detectado: PID '+c.join(' -> ')+' -> PID '+c[0]);return'DEADLOCK detectado: PID '+c.join(' -> ')+' -> PID '+c[0]},
+rtos(){K.rt.forEach(t=>{t.r=t.c+Math.round(Math.random()*30);t.ok=t.r<=t.dl});const m=K.rt.filter(t=>!t.ok).length;log('RTOS','Tareas ejecutadas, plazos incumplidos: '+m);
+return K.rt.map(t=>t.n+': respuesta '+t.r+' ms / plazo '+t.dl+' ms '+(t.ok?'OK':'INCUMPLIDO')).join('\n')},
+logs(){return K.ev.slice(0,10).join('\n')},
+clear(){$('#term').textContent='';return''},
+async reboot(){out('Reiniciando...');await boot();return'Ciclo de arranque ejecutado de nuevo (arranque n.° '+K.boots+')'}};
+async function sh(line){line=line.trim();if(!line)return;out('$ '+line);const[c,...a]=line.split(/\s+/);
+try{if(!K.booted&&c!=='reboot')throw Error('Kernel iniciando, espera un momento');if(!SYS[c])throw Error('comando desconocido: '+c);const r=await SYS[c](...a);if(r)out(r)}
+catch(e){out('ERROR: '+e.message);log('ERROR',e.message)}}
+setInterval(()=>{if(!K.booted)return;K.tick++;let r=K.procs.find(p=>p.state==='RUNNING');
+if(r&&(K.sched==='prio'||K.quantum<=0)){r.state='READY';r=null}
+const rd=K.procs.filter(p=>p.state==='READY');
+if(!r&&rd.length){r=(K.sched==='prio'?rd.sort((a,b)=>a.prio-b.prio||a.pid-b.pid):rd.sort((a,b)=>a.last-b.last))[0];r.state='RUNNING';K.quantum=K.q}
+if(r){r.rem--;r.cpu++;K.quantum--;r.last=K.tick;if(r.rem<=0)fin(r,'terminó')}draw()},700);
+function draw(){if(!$('#ps'))return;$('#st').innerHTML=K.booted?'<span class="ok">RUNNING</span> · tick '+K.tick+' · '+(K.sched==='rr'?'Round Robin':'Prioridad'):'<span class="wn">ARRANCANDO</span>';
+$('#ps').innerHTML='<table><tr><th>PID</th><th>Nombre</th><th>Estado</th><th>CPU</th><th></th></tr>'+K.procs.map(p=>'<tr><td>'+p.pid+'</td><td>'+p.n+' <small>p'+p.prio+'</small></td><td class="'+(p.state==='RUNNING'?'ok':p.state==='WAITING'?'bad':'')+'">'+p.state+'</td><td>'+p.cpu+'</td><td>'+(p.state==='TERMINATED'?'':'<button onclick="sh(\'run '+p.pid+'\')">Ejecutar</button><button onclick="sh(\'kill '+p.pid+'\')">Finalizar</button>')+'</td></tr>').join('')+'</table>';
+const col=o=>o===null?'':o==='kernel'?'#4a5a85':'hsl('+((parseInt(String(o).replace(/\D/g,''))||0)*67%360)+',60%,50%)';
+$('#mem').innerHTML=K.mem.map((o,i)=>'<i title="bloque '+i+': '+(o===null?'libre':o)+'" style="background:'+(col(o)||'')+'"></i>').join('');$('#ms').textContent=SYS.mem()+' · gris: kernel';
+$('#fs').innerHTML=K.files.map(f=>'<div>'+(f.endsWith('/')?'📁 ':'📄 ')+f+'</div>').join('');
+$('#dv').innerHTML='<table>'+K.dev.map((d,i)=>'<tr><td>'+d.n+'</td><td class="'+(d.s==='ONLINE'?'ok':'bad')+'">'+d.s+'</td><td><button onclick="sh(\''+(d.s==='ONLINE'?'disconnect ':'connect ')+i+'\')">'+(d.s==='ONLINE'?'Desconectar':'Conectar')+'</button></td></tr>').join('')+'</table>';
+const c=hasCycle();$('#lab').innerHTML=(c?'<p class="bad">Deadlock: PID '+c.join(' → ')+' → PID '+c[0]+'</p>':'<p><small>Sin bloqueos</small></p>')+'<table><tr><th>Tarea</th><th>Resp.</th><th>Plazo</th><th></th></tr>'+K.rt.map(t=>'<tr><td>'+t.n+'</td><td>'+(t.r??'-')+'</td><td>'+t.dl+'</td><td class="'+(t.ok?'ok':'bad')+'">'+(t.r==null?'':t.ok?'OK':'Tarde')+'</td></tr>').join('')+'</table>';
+$('#ev').innerHTML=K.ev.map(e=>'<div><small>'+e+'</small></div>').join('')}
+$('#cmd').addEventListener('keydown',e=>{if(e.key==='Enter'){sh(e.target.value);e.target.value=''}});
+out('RobotOS SmartHome. Escribe help para ver los comandos.');boot();
+</script></body></html>
