@@ -1,49 +1,82 @@
 <!DOCTYPE html>
 <html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>RobotOS SmartHome</title>
+<title>RobotOS</title>
 <style>
-:root{--bg:#0f1420;--p:#171e2e;--t:#e6ebf5;--m:#8b97ad;--a:#4cc9a0;--w:#f0b429;--e:#ef5b5b;--b:#2a3550}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--t);font:14px system-ui,sans-serif}
-header{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:var(--p);border-bottom:1px solid var(--b)}
-main{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:10px;padding:10px}
-.w{background:var(--p);border:1px solid var(--b);border-radius:8px;overflow:hidden}
-.w h3{margin:0;padding:6px 10px;font-size:13px;background:#1e2740}
-.c{padding:8px 10px;max-height:250px;overflow:auto}
-table{width:100%;border-collapse:collapse;font-size:12px}td,th{padding:3px 4px;text-align:left;border-bottom:1px solid var(--b)}
-button,select{background:#24304d;color:var(--t);border:1px solid var(--b);border-radius:5px;padding:4px 8px;margin:2px;font-size:12px}
-#term{font:12px monospace;height:190px;overflow:auto;white-space:pre-wrap;color:#cfe}
-input{width:100%;background:#0b0f19;color:var(--a);border:0;border-top:1px solid var(--b);padding:9px;font:13px monospace}
-#mem{display:grid;grid-template-columns:repeat(16,1fr);gap:2px}#mem i{height:18px;border-radius:2px;background:#26304a}
-.ok{color:var(--a)}.bad{color:var(--e)}.wn{color:var(--w)}small{color:var(--m)}
+:root{--bg:#070b14;--g:rgba(255,255,255,.05);--bd:rgba(255,255,255,.1);--t:#e8eefc;--m:#8a96b5;--a:#22d3a6;--b:#6c8cff;--w:#fbbf24;--e:#ff5d73}
+*{box-sizing:border-box}html,body{margin:0;height:100%}
+body{background:radial-gradient(900px 500px at 10% -10%,#1b2a6b55,transparent),radial-gradient(800px 500px at 100% 100%,#0e6b5a44,transparent),var(--bg);color:var(--t);font:14px/1.4 system-ui,-apple-system,sans-serif}
+.app{display:grid;grid-template-columns:200px 1fr;min-height:100%}
+nav{padding:16px 10px;border-right:1px solid var(--bd);background:rgba(8,12,24,.6);backdrop-filter:blur(10px);position:sticky;top:0;height:100vh}
+.logo{font-weight:800;font-size:19px;padding:4px 10px 16px;background:linear-gradient(90deg,var(--a),var(--b));-webkit-background-clip:text;color:transparent}
+nav button{display:block;width:100%;text-align:left;margin:3px 0;padding:10px 12px;border:0;border-radius:10px;background:none;color:var(--m);font-size:14px;cursor:pointer}
+nav button.on{background:linear-gradient(90deg,#22d3a620,#6c8cff20);color:var(--t);box-shadow:inset 0 0 0 1px var(--bd)}
+main{padding:18px;min-width:0}
+.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.top h2{margin:0;font-size:20px}.pill{padding:4px 12px;border-radius:99px;background:var(--g);border:1px solid var(--bd);font-size:12px}
+.tab{display:none}.tab.on{display:block}
+.grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
+.card{background:var(--g);border:1px solid var(--bd);border-radius:16px;padding:14px;backdrop-filter:blur(8px);box-shadow:0 8px 30px #0006}
+.card h3{margin:0 0 10px;font-size:13px;color:var(--m);font-weight:600;letter-spacing:.04em;text-transform:uppercase}
+.kpis{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));margin-bottom:12px}
+.ring{--p:0;--c:var(--a);width:96px;height:96px;margin:4px auto;border-radius:50%;display:grid;place-items:center;background:conic-gradient(var(--c) calc(var(--p)*1%),#ffffff14 0);position:relative}
+.ring:before{content:"";position:absolute;inset:9px;border-radius:50%;background:#0c1222}.ring b{position:relative;font-size:18px}
+.kpi{text-align:center}.kpi small{color:var(--m)}
+table{width:100%;border-collapse:collapse;font-size:13px}td,th{padding:6px 5px;text-align:left;border-bottom:1px solid var(--bd)}th{color:var(--m);font-weight:600}
+button.b,select{background:linear-gradient(135deg,#6c8cff33,#22d3a633);color:var(--t);border:1px solid var(--bd);border-radius:9px;padding:6px 11px;margin:2px;font-size:12px;cursor:pointer}
+button.b:hover{border-color:var(--a)}
+.ok{color:var(--a)}.bad{color:var(--e)}.wn{color:var(--w)}small,.mu{color:var(--m)}
+#term{font:12px/1.5 ui-monospace,monospace;height:300px;overflow:auto;white-space:pre-wrap;color:#b9ffe9;background:#05080f;border-radius:10px;padding:10px}
+#cmd{width:100%;margin-top:8px;background:#05080f;color:var(--a);border:1px solid var(--bd);border-radius:10px;padding:10px;font:13px ui-monospace,monospace}
+#mem{display:grid;grid-template-columns:repeat(16,1fr);gap:3px}#mem i{height:22px;border-radius:5px;background:#ffffff12;transition:.3s}
+.dev{display:flex;gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid var(--bd)}.dev .ic{font-size:22px}.dev .n{flex:1}
+.dot{width:10px;height:10px;border-radius:50%;display:inline-block;margin-right:6px}
+.ev div{padding:3px 0;border-bottom:1px solid #ffffff0d;font-size:12px}
+.gantt{display:grid;grid-template-columns:70px 1fr;gap:3px 8px;font-size:11px;align-items:center}.gantt .r{display:flex;height:14px;gap:1px}.gantt .r i{flex:1;background:#ffffff0f;border-radius:2px}
+#twin{width:100%;height:auto;background:radial-gradient(circle at 50% 50%,#10224a,#070b14);border-radius:14px}
+#rb{transition:transform .7s linear}
+@media(max-width:760px){.app{grid-template-columns:1fr}nav{position:fixed;bottom:0;left:0;right:0;top:auto;height:auto;display:flex;overflow:auto;z-index:9;border-right:0;border-top:1px solid var(--bd);padding:6px}.logo{display:none}nav button{width:auto;white-space:nowrap;padding:9px 11px;font-size:12px}main{padding:12px 12px 80px}}
 </style></head><body>
-<header><b>RobotOS SmartHome</b><span id="st"></span></header>
+<div class="app">
+<nav><div class="logo">🤖 RobotOS</div>
+<button data-t="res" class="on">📊 Resumen</button><button data-t="ker">🧬 Kernel y terminal</button><button data-t="pro">⚙️ Procesos y CPU</button><button data-t="mem">💾 Memoria y archivos</button><button data-t="dis">📡 Dispositivos</button><button data-t="twin">🤖 Gemelo digital</button><button data-t="lab">🧪 Laboratorios</button></nav>
 <main>
-<section class="w"><h3>Terminal</h3><div class="c" id="term"></div><input id="cmd" placeholder="escribe help" autocomplete="off"></section>
-<section class="w"><h3>Procesos y scheduler</h3><div class="c"><button onclick="sh('create proc'+K.pid+' '+(1+K.pid%3)+' 2')">Crear proceso</button>
-<select id="sch" onchange="sh('sched '+this.value)"><option value="prio">Prioridad</option><option value="rr">Round Robin</option></select><div id="ps"></div></div></section>
-<section class="w"><h3>Mapa de memoria (64 bloques de 16 MB)</h3><div class="c"><div id="mem"></div><small id="ms"></small></div></section>
-<section class="w"><h3>Explorador de archivos</h3><div class="c"><button onclick="sh('touch /config/nota'+K.files.length+'.txt')">Crear archivo</button><div id="fs"></div></div></section>
-<section class="w"><h3>Dispositivos</h3><div class="c" id="dv"></div></section>
-<section class="w"><h3>Laboratorios: deadlock y RTOS</h3><div class="c"><button onclick="sh('deadlock')">Generar deadlock</button><button onclick="sh('rtos')">Ejecutar tareas RTOS</button><div id="lab"></div></div></section>
-<section class="w"><h3>Eventos del kernel</h3><div class="c" id="ev"></div></section>
-</main>
+<div class="top"><h2 id="ttl">Resumen</h2><span class="pill" id="st"></span></div>
+<section class="tab on" id="t-res"><div class="kpis" id="kp"></div>
+<div class="grid"><div class="card"><h3>Procesos</h3><div id="rps"></div></div><div class="card"><h3>Dispositivos</h3><div id="rdv"></div></div><div class="card ev"><h3>Últimos eventos</h3><div id="rev"></div></div></div></section>
+<section class="tab" id="t-ker"><div class="grid"><div class="card"><h3>Terminal</h3><div id="term"></div><input id="cmd" placeholder="escribe help y pulsa Enter" autocomplete="off"></div>
+<div class="card"><h3>Núcleo del sistema</h3><p id="kst"></p><p class="mu">Llamadas al sistema</p><p><small>create · run · kill · sched · alloc · free · touch · disconnect · connect · deadlock · rtos · reboot</small></p><button class="b" onclick="sh('reboot')">🔄 Reiniciar</button></div>
+<div class="card ev"><h3>Motor de eventos</h3><div id="ev"></div></div></div></section>
+<section class="tab" id="t-pro"><div class="grid"><div class="card"><h3>Procesos</h3><button class="b" onclick="sh('create proc'+K.pid+' '+(1+K.pid%3)+' 2')">➕ Crear proceso</button>
+<select id="sch" onchange="sh('sched '+this.value)"><option value="prio">Prioridad</option><option value="rr">Round Robin</option></select><div id="ps"></div></div>
+<div class="card"><h3>Línea de tiempo del scheduler</h3><div class="gantt" id="gt"></div></div></div></section>
+<section class="tab" id="t-mem"><div class="grid"><div class="card"><h3>Mapa de memoria · 64 bloques de 16 KB</h3><div id="mem"></div><p><small id="ms"></small></p>
+<button class="b" onclick="sh('alloc 4')">➕ Asignar 4 bloques</button><button class="b" onclick="sh('alloc 60')">⚠️ Asignar 60</button></div>
+<div class="card"><h3>Explorador de archivos</h3><button class="b" onclick="sh('touch /config/nota'+K.files.length+'.txt')">📄 Crear archivo</button><div id="fs"></div></div></div></section>
+<section class="tab" id="t-dis"><div class="card"><h3>Dispositivos del robot</h3><div id="dv"></div></div></section>
+<section class="tab" id="t-twin"><div class="grid"><div class="card"><h3>Gemelo digital · patrulla</h3>
+<svg id="twin" viewBox="0 0 400 260"><ellipse cx="200" cy="130" rx="150" ry="85" fill="none" stroke="#6c8cff55" stroke-dasharray="6 6"/><g id="obs"></g>
+<g id="rb"><path id="cone" d="M0 0 L46 -14 L46 14Z" fill="#22d3a633"/><circle r="11" fill="#22d3a6"/><rect x="2" y="-4" width="12" height="8" rx="3" fill="#07322a"/></g></svg><p id="tw" class="mu"></p></div>
+<div class="card"><h3>Estado del robot</h3><div id="tst"></div></div></div></section>
+<section class="tab" id="t-lab"><div class="grid"><div class="card"><h3>Deadlock</h3><button class="b" onclick="sh('deadlock')">🔒 Generar deadlock</button><div id="dl"></div></div>
+<div class="card"><h3>Tareas de tiempo real (RTOS)</h3><button class="b" onclick="sh('rtos')">⏱️ Ejecutar tareas</button><div id="rt"></div></div></div></section>
+</main></div>
 <script>
 const $=s=>document.querySelector(s),sleep=t=>new Promise(r=>setTimeout(r,t));
-const K={booted:false,tick:0,pid:1,procs:[],sched:'prio',q:2,quantum:0,ev:[],files:[],mem:[],dev:[],rt:[],dl:null,mc:1,boots:0};
+const K={booted:false,tick:0,pid:1,procs:[],sched:'prio',q:2,quantum:0,ev:[],files:[],mem:[],dev:[],rt:[],dl:null,mc:1,boots:0,hist:[],bat:100,ang:0,hit:null,col:0};
+const OB=[40,140,230,320],ICO={camera:'📷',sensor:'📡',motor:'⚙️',comms:'📶',power:'🔋',nav:'🧭'};
 const log=(l,m)=>{K.ev.unshift(new Date().toLocaleTimeString()+' ['+l+'] '+m);K.ev.length=50;draw()};
 const out=t=>{const e=$('#term');e.textContent+=t+'\n';e.scrollTop=1e9};
-const owner=o=>K.mem.indexOf(o)>=0;
 function alloc(k,o){for(let i=0;i<=64-k;i++)if(K.mem.slice(i,i+k).every(x=>x===null)){for(let j=i;j<i+k;j++)K.mem[j]=o;return i}return -1}
 const free=o=>{const n=K.mem.filter(x=>x===o).length;K.mem=K.mem.map(x=>x===o?null:x);return n};
-async function boot(){K.booted=false;K.procs=[];K.pid=1;K.tick=0;K.mc=1;K.dl=null;K.mem=Array(64).fill(null);K.files=['/system/','/config/','/logs/','/users/'];
-K.dev=['Luces','Sensor de movimiento','Cámara','Cerradura','Sensor de temperatura','Climatización'].map(n=>({n,s:'ONLINE'}));
-K.rt=[{n:'lectura_temp',dl:40,c:20},{n:'alarma_cerradura',dl:20,c:10},{n:'stream_camara',dl:150,c:90}];
+async function boot(){K.booted=false;K.procs=[];K.pid=1;K.tick=0;K.mc=1;K.dl=null;K.hist=[];K.bat=100;K.mem=Array(64).fill(null);K.files=['/system/','/apps/','/users/','/drivers/','/config/','/logs/'];
+K.dev=[['Cámara frontal','camera'],['Sensor de distancia','sensor'],['Motor izquierdo','motor'],['Motor derecho','motor'],['Módulo de comunicación','comms'],['Batería','power'],['GPS y navegación','nav']].map(([n,t])=>({n,t,s:'ONLINE'}));
+K.rt=[{n:'lectura_sensor',dl:40,c:20},{n:'control_motores',dl:20,c:10},{n:'stream_camara',dl:150,c:90}];
 for(let i=0;i<8;i++)K.mem[i]='kernel';K.boots++;
-for(const s of ['Boot Manager: iniciando ciclo '+K.boots,'Kernel Core: cargado','System State: RUNNING','Driver Manager: 6 dispositivos','Event Engine: listo','File System: montado']){log('BOOT',s);await sleep(120)}
+for(const s of ['Boot Manager: iniciando ciclo '+K.boots,'Kernel Core: cargado','System State: RUNNING','Driver Manager: 7 dispositivos','Event Engine: listo','File System: montado']){log('BOOT',s);await sleep(120)}
 K.booted=true;log('INFO','Arranque completo')}
 function fin(p,why){p.state='TERMINATED';const n=free(p.pid);log('PROC','PID '+p.pid+' '+why+', memoria liberada: '+n+' bloques')}
 const P=pid=>{const p=K.procs.find(x=>x.pid==pid);if(!p)throw Error('PID '+pid+' no existe');return p};
-const hasCycle=()=>{const d=K.dl;if(!d)return null;const g={};for(const p in d.w){g[p]=Object.keys(d.h).find(q=>d.h[q]===d.w[p])}
+const cyc=()=>{const d=K.dl;if(!d)return null;const g={};for(const p in d.w)g[p]=Object.keys(d.h).find(q=>d.h[q]===d.w[p]);
 for(const s in g){let c=s,seen=[];while(c&&!seen.includes(c)){seen.push(c);c=g[c]}if(c&&c===s)return seen}return null};
 const SYS={
 help(){return'create <n> [prio 1-3] [bloques] | run <pid> | kill <pid> | ps | sched prio|rr | mem | alloc <bloques> | free <M#> | touch <ruta> | ls | devices | disconnect <n> | connect <n> | deadlock | rtos | logs | reboot | clear'},
@@ -53,7 +86,7 @@ kill(pid){fin(P(pid),'finalizado');return'PID '+pid+' finalizado'},
 ps(){return K.procs.map(p=>p.pid+' '+p.n+' '+p.state+' prio='+p.prio+' cpu='+p.cpu+' mem='+p.mem).join('\n')||'sin procesos'},
 sched(m){if(!['prio','rr'].includes(m))throw Error('usa prio o rr');K.sched=m;$('#sch').value=m;log('SCHED','Scheduler cambiado a '+(m==='rr'?'Round Robin':'Prioridad'));return'Scheduler: '+m},
 mem(){return K.mem.filter(x=>x===null).length+' bloques libres de 64'},
-alloc(n=1){const o='M'+K.mc,at=alloc(+n,o);if(at<0)throw Error('Memoria insuficiente');K.mc++;log('MEM','Asignados '+n+' bloques ('+o+') desde '+at);return o+': '+n+' bloques desde el '+at},
+alloc(n=1){const o='M'+K.mc,at=alloc(+n,o);if(at<0){log('MEM','Memoria insuficiente al pedir '+n+' bloques');throw Error('Memoria insuficiente')}K.mc++;log('MEM','Asignados '+n+' bloques ('+o+') desde '+at);return o+': '+n+' bloques desde el '+at},
 free(o){const n=free(o);if(!n)throw Error('No existe '+o);log('MEM','Liberado '+o);return o+' liberado ('+n+' bloques)'},
 touch(f){if(!f||f[0]!=='/')throw Error('usa una ruta, por ejemplo /config/a.txt');if(K.files.includes(f))throw Error('ya existe');K.files.push(f);log('FS','Archivo creado: '+f);return'Creado '+f},
 ls(){return K.files.join('\n')},
@@ -61,7 +94,7 @@ devices(){return K.dev.map((d,i)=>i+' '+d.n+' '+d.s).join('\n')},
 disconnect(i){const d=K.dev[i];if(!d)throw Error('dispositivo inválido');d.s='OFFLINE';log('EVENT',d.n+' desconectado, estado OFFLINE');return d.n+' -> OFFLINE'},
 connect(i){const d=K.dev[i];if(!d)throw Error('dispositivo inválido');d.s='ONLINE';log('EVENT',d.n+' reconectado');return d.n+' -> ONLINE'},
 deadlock(){const a=SYS.create('proc_A',2,1).match(/PID (\d+)/)[1],b=SYS.create('proc_B',2,1).match(/PID (\d+)/)[1];
-K.dl={h:{[a]:'R1',[b]:'R2'},w:{[a]:'R2',[b]:'R1'}};P(a).state='WAITING';P(b).state='WAITING';const c=hasCycle();
+K.dl={h:{[a]:'R1',[b]:'R2'},w:{[a]:'R2',[b]:'R1'}};P(a).state='WAITING';P(b).state='WAITING';const c=cyc();
 log('DEADLOCK','Bloqueo detectado: PID '+c.join(' -> ')+' -> PID '+c[0]);return'DEADLOCK detectado: PID '+c.join(' -> ')+' -> PID '+c[0]},
 rtos(){K.rt.forEach(t=>{t.r=t.c+Math.round(Math.random()*30);t.ok=t.r<=t.dl});const m=K.rt.filter(t=>!t.ok).length;log('RTOS','Tareas ejecutadas, plazos incumplidos: '+m);
 return K.rt.map(t=>t.n+': respuesta '+t.r+' ms / plazo '+t.dl+' ms '+(t.ok?'OK':'INCUMPLIDO')).join('\n')},
@@ -71,19 +104,42 @@ async reboot(){out('Reiniciando...');await boot();return'Ciclo de arranque ejecu
 async function sh(line){line=line.trim();if(!line)return;out('$ '+line);const[c,...a]=line.split(/\s+/);
 try{if(!K.booted&&c!=='reboot')throw Error('Kernel iniciando, espera un momento');if(!SYS[c])throw Error('comando desconocido: '+c);const r=await SYS[c](...a);if(r)out(r)}
 catch(e){out('ERROR: '+e.message);log('ERROR',e.message)}}
+const on=n=>(K.dev.find(d=>d.n===n)||{}).s==='ONLINE';
 setInterval(()=>{if(!K.booted)return;K.tick++;let r=K.procs.find(p=>p.state==='RUNNING');
 if(r&&(K.sched==='prio'||K.quantum<=0)){r.state='READY';r=null}
 const rd=K.procs.filter(p=>p.state==='READY');
 if(!r&&rd.length){r=(K.sched==='prio'?rd.sort((a,b)=>a.prio-b.prio||a.pid-b.pid):rd.sort((a,b)=>a.last-b.last))[0];r.state='RUNNING';K.quantum=K.q}
-if(r){r.rem--;r.cpu++;K.quantum--;r.last=K.tick;if(r.rem<=0)fin(r,'terminó')}draw()},700);
-function draw(){if(!$('#ps'))return;$('#st').innerHTML=K.booted?'<span class="ok">RUNNING</span> · tick '+K.tick+' · '+(K.sched==='rr'?'Round Robin':'Prioridad'):'<span class="wn">ARRANCANDO</span>';
-$('#ps').innerHTML='<table><tr><th>PID</th><th>Nombre</th><th>Estado</th><th>CPU</th><th></th></tr>'+K.procs.map(p=>'<tr><td>'+p.pid+'</td><td>'+p.n+' <small>p'+p.prio+'</small></td><td class="'+(p.state==='RUNNING'?'ok':p.state==='WAITING'?'bad':'')+'">'+p.state+'</td><td>'+p.cpu+'</td><td>'+(p.state==='TERMINATED'?'':'<button onclick="sh(\'run '+p.pid+'\')">Ejecutar</button><button onclick="sh(\'kill '+p.pid+'\')">Finalizar</button>')+'</td></tr>').join('')+'</table>';
-const col=o=>o===null?'':o==='kernel'?'#4a5a85':'hsl('+((parseInt(String(o).replace(/\D/g,''))||0)*67%360)+',60%,50%)';
-$('#mem').innerHTML=K.mem.map((o,i)=>'<i title="bloque '+i+': '+(o===null?'libre':o)+'" style="background:'+(col(o)||'')+'"></i>').join('');$('#ms').textContent=SYS.mem()+' · gris: kernel';
+if(r){r.rem--;r.cpu++;K.quantum--;r.last=K.tick;if(r.rem<=0)fin(r,'terminó')}
+K.hist.push(r?r.pid:0);K.hist=K.hist.slice(-30);
+const mv=on('Motor izquierdo')&&on('Motor derecho');let sp=mv?7:0;K.hit=null;
+if(mv){const near=OB.find(o=>{const d=(o-K.ang+360)%360;return d>0&&d<28});
+if(near!==undefined){if(on('Sensor de distancia')){sp=2.5;K.hit='ok'}else{K.hit='bad';if(!K.col){K.col=1;log('ERROR','Colisión: el sensor de distancia no respondió')}}}else K.col=0}
+K.ang=(K.ang+sp)%360;K.bat=Math.max(0,K.bat-(mv?.08:.02));draw()},700);
+const hue=o=>o==='kernel'?'#5b6fa8':'hsl('+((parseInt(String(o).replace(/\D/g,''))||0)*67%360)+',65%,55%)';
+const ring=(v,c,l)=>'<div class="card kpi"><div class="ring" style="--p:'+v+';--c:'+c+'"><b>'+v+'%</b></div><small>'+l+'</small></div>';
+function draw(){if(!$('#ps'))return;
+const used=K.mem.filter(x=>x!==null).length,cpu=Math.min(100,K.procs.filter(p=>p.state==='RUNNING').length*55+K.procs.filter(p=>p.state==='READY').length*9);
+$('#st').innerHTML=K.booted?'<span class="ok">● RUNNING</span> · tick '+K.tick+' · '+(K.sched==='rr'?'Round Robin':'Prioridad'):'<span class="wn">● ARRANCANDO</span>';
+$('#kp').innerHTML=ring(cpu,'#6c8cff','CPU')+ring(Math.round(used/64*100),'#22d3a6','Memoria')+ring(Math.round(K.bat),K.bat<20?'#ff5d73':'#fbbf24','Batería')+ring(Math.min(100,K.files.length*4),'#c084fc','Almacenamiento');
+const sc=s=>s==='RUNNING'?'ok':s==='WAITING'?'bad':'mu';
+$('#rps').innerHTML='<table>'+K.procs.filter(p=>p.state!=='TERMINATED').slice(0,6).map(p=>'<tr><td>'+p.pid+' '+p.n+'</td><td class="'+sc(p.state)+'">'+p.state+'</td></tr>').join('')+'</table>';
+$('#rdv').innerHTML=K.dev.map(d=>'<div><span class="dot" style="background:'+(d.s==='ONLINE'?'#22d3a6':'#ff5d73')+'"></span>'+d.n+'</div>').join('');
+$('#rev').innerHTML=K.ev.slice(0,6).map(e=>'<div>'+e+'</div>').join('');$('#ev').innerHTML=K.ev.map(e=>'<div>'+e+'</div>').join('');
+$('#kst').innerHTML=K.booted?'<span class="ok">Kernel activo</span> · arranque n.° '+K.boots+' · '+K.procs.length+' procesos creados':'<span class="wn">Arrancando…</span>';
+$('#ps').innerHTML='<table><tr><th>PID</th><th>Nombre</th><th>Estado</th><th>CPU</th><th></th></tr>'+K.procs.map(p=>'<tr><td>'+p.pid+'</td><td>'+p.n+' <small>p'+p.prio+'</small></td><td class="'+sc(p.state)+'">'+p.state+'</td><td>'+p.cpu+'</td><td>'+(p.state==='TERMINATED'?'':'<button class="b" onclick="sh(\'run '+p.pid+'\')">▶</button><button class="b" onclick="sh(\'kill '+p.pid+'\')">⏹</button>')+'</td></tr>').join('')+'</table>';
+const ids=[...new Set(K.hist.filter(x=>x))];$('#gt').innerHTML=ids.map(id=>'<span>PID '+id+'</span><div class="r">'+K.hist.map(h=>'<i style="'+(h===id?'background:'+hue(id):'')+'"></i>').join('')+'</div>').join('')||'<span class="mu">Ejecuta un proceso para verlo</span>';
+$('#mem').innerHTML=K.mem.map((o,i)=>'<i title="bloque '+i+': '+(o===null?'libre':o)+'" style="'+(o===null?'':'background:'+hue(o))+'"></i>').join('');$('#ms').textContent=(64-used)+' bloques libres de 64 · gris azulado: kernel';
 $('#fs').innerHTML=K.files.map(f=>'<div>'+(f.endsWith('/')?'📁 ':'📄 ')+f+'</div>').join('');
-$('#dv').innerHTML='<table>'+K.dev.map((d,i)=>'<tr><td>'+d.n+'</td><td class="'+(d.s==='ONLINE'?'ok':'bad')+'">'+d.s+'</td><td><button onclick="sh(\''+(d.s==='ONLINE'?'disconnect ':'connect ')+i+'\')">'+(d.s==='ONLINE'?'Desconectar':'Conectar')+'</button></td></tr>').join('')+'</table>';
-const c=hasCycle();$('#lab').innerHTML=(c?'<p class="bad">Deadlock: PID '+c.join(' → ')+' → PID '+c[0]+'</p>':'<p><small>Sin bloqueos</small></p>')+'<table><tr><th>Tarea</th><th>Resp.</th><th>Plazo</th><th></th></tr>'+K.rt.map(t=>'<tr><td>'+t.n+'</td><td>'+(t.r??'-')+'</td><td>'+t.dl+'</td><td class="'+(t.ok?'ok':'bad')+'">'+(t.r==null?'':t.ok?'OK':'Tarde')+'</td></tr>').join('')+'</table>';
-$('#ev').innerHTML=K.ev.map(e=>'<div><small>'+e+'</small></div>').join('')}
+$('#dv').innerHTML=K.dev.map((d,i)=>'<div class="dev"><span class="ic">'+ICO[d.t]+'</span><span class="n">'+d.n+'</span><b class="'+(d.s==='ONLINE'?'ok':'bad')+'">'+d.s+'</b><button class="b" onclick="sh(\''+(d.s==='ONLINE'?'disconnect ':'connect ')+i+'\')">'+(d.s==='ONLINE'?'Desconectar':'Conectar')+'</button></div>').join('');
+const a=K.ang*Math.PI/180,x=200+150*Math.cos(a),y=130+85*Math.sin(a);
+$('#rb').style.transform='translate('+x+'px,'+y+'px) rotate('+(K.ang+90)+'deg)';
+$('#obs').innerHTML=OB.map(o=>{const q=o*Math.PI/180;return'<rect x="'+(200+150*Math.cos(q)-9)+'" y="'+(130+85*Math.sin(q)-9)+'" width="18" height="18" rx="4" fill="#ff5d7355" stroke="#ff5d73"/>'}).join('');
+$('#cone').setAttribute('fill',on('Sensor de distancia')?'#22d3a633':'#ffffff11');
+$('#tw').innerHTML=!(on('Motor izquierdo')&&on('Motor derecho'))?'<span class="bad">Motor detenido: el robot no avanza</span>':K.hit==='ok'?'<span class="wn">Obstáculo detectado: reduce la velocidad</span>':K.hit==='bad'?'<span class="bad">Colisión: sensor de distancia sin señal</span>':'<span class="ok">Patrullando con normalidad</span>';
+$('#tst').innerHTML=K.dev.map(d=>'<div><span class="dot" style="background:'+(d.s==='ONLINE'?'#22d3a6':'#ff5d73')+'"></span>'+d.n+' · '+d.s+'</div>').join('')+'<p class="mu">Batería '+Math.round(K.bat)+'%. Prueba apagar un motor o el sensor desde Dispositivos.</p>';
+const c=cyc();$('#dl').innerHTML=c?'<p class="bad">Deadlock: PID '+c.join(' → ')+' → PID '+c[0]+'</p>':'<p class="mu">Sin bloqueos</p>';
+$('#rt').innerHTML='<table><tr><th>Tarea</th><th>Resp.</th><th>Plazo</th><th></th></tr>'+K.rt.map(t=>'<tr><td>'+t.n+'</td><td>'+(t.r??'-')+'</td><td>'+t.dl+'</td><td class="'+(t.ok?'ok':'bad')+'">'+(t.r==null?'':t.ok?'OK':'Tarde')+'</td></tr>').join('')+'</table>'}
+document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{document.querySelectorAll('nav button,.tab').forEach(e=>e.classList.remove('on'));b.classList.add('on');$('#t-'+b.dataset.t).classList.add('on');$('#ttl').textContent=b.textContent.slice(2).trim();draw()});
 $('#cmd').addEventListener('keydown',e=>{if(e.key==='Enter'){sh(e.target.value);e.target.value=''}});
-out('RobotOS SmartHome. Escribe help para ver los comandos.');boot();
+out('RobotOS. Escribe help para ver los comandos.');boot();
 </script></body></html>
