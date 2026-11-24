@@ -39,11 +39,6 @@ select,input.n{background:#fff;color:var(--t);border:1px solid var(--bd);border-
 #toast{position:fixed;top:92px;right:14px;z-index:60;display:grid;gap:8px}.tst{background:#1e1b4b;color:#fff;padding:11px 15px;border-radius:12px;border-left:4px solid #f43f5e;box-shadow:0 10px 24px #0005;font-weight:600}
 #lg{position:fixed;inset:0;z-index:99;display:grid;place-items:center;background:rgba(238,240,255,.96);backdrop-filter:blur(8px)}#lg .card{width:min(370px,92vw);text-align:center}
 #lg input{width:100%;margin:6px 0;padding:12px;border-radius:12px;border:1px solid var(--bd);background:#fff;color:var(--t);font-size:14px}
-
-/* Diseño lateral pastel y gemelo digital */
-@media(min-width:850px){nav{position:fixed;left:0;top:0;bottom:0;width:206px;display:flex;flex-direction:column;overflow-y:auto;padding:18px 12px;background:#ffffffdc;border-right:1px solid var(--bd);gap:5px}nav button{flex-direction:row;min-width:0;width:100%;text-align:left;padding:6px 9px;border-radius:14px;gap:12px}nav button i{width:38px;height:38px;flex-shrink:0;border-radius:12px;font-size:18px}nav button small{margin-left:auto}main{margin-left:206px;max-width:none;padding:20px 26px 40px}}
-@media(max-width:849px){nav button{min-width:82px}}
-.house-scene{background:linear-gradient(145deg,#f0f6ff,#f4eaff);border:1px solid #c8d4ff;border-radius:20px;padding:14px}.house-scene svg{width:100%;height:auto;display:block}.room{cursor:pointer;outline:none}.room .floor{transition:fill .2s,stroke .2s;stroke:#a8a8d9;stroke-width:2}.room:hover .floor,.room:focus .floor{stroke:#4f46e5;stroke-width:4}.room.selected .floor{stroke:#7c3aed;stroke-width:5}.room text{pointer-events:none;font-weight:700;fill:#343365;font-size:14px}.room .room-icon{font-size:28px}.room .room-status{font-size:12px}.house-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.house-actions button:disabled{opacity:.45;cursor:not-allowed}.house-detail{padding:14px;border-radius:14px;background:#fff;border:1px solid var(--bd);margin-top:12px}.help-note{font-size:12px;color:var(--m);margin-top:10px}
 </style><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script><script src="config.js"></script></head><body>
 <div id="lg"><div class="card"><div class="logo" style="padding:0 0 8px">🤖 RobotOS</div><p class="mu">Inicia sesión para entrar al sistema</p><input id="em" type="email" placeholder="correo" autocomplete="username"><input id="pw" type="password" placeholder="contraseña" autocomplete="current-password"><button class="b" id="go" style="width:100%;padding:10px">Entrar</button><button class="b" id="su" style="width:100%;padding:10px;background:#fff;color:#4f46e5;border:1px solid var(--bd);box-shadow:none">Crear cuenta nueva (GUEST)</button><p class="mu" style="font-size:12px;margin:6px 0 0">Las cuentas nuevas entran como GUEST: solo pueden ver los dispositivos.</p><p id="lm" class="bad"></p></div></div>
 <nav><button data-t="res" data-n="Casa" class="on"><i>🏠</i>Casa<small></small></button><button data-t="ctl" data-n="Control"><i>🎛️</i>Control<small></small></button><button data-t="dis" data-n="Dispositivos"><i>💡</i>Dispositivos<small>PID 212</small></button><button data-t="twin" data-n="Gemelo"><i>🗺️</i>Gemelo<small></small></button><button data-t="hw" data-n="Hardware"><i>🤖</i>Hardware<small></small></button><button data-t="dia" data-n="Diagnóstico"><i>🩺</i>Diagnóstico<small></small></button><button data-t="fil" data-n="Archivos"><i>📂</i>Archivos<small></small></button><button data-t="mon" data-n="Monitor"><i>📈</i>Monitor<small>PID 215</small></button><button data-t="ter" data-n="Terminal"><i>⌨️</i>Terminal<small></small></button><button data-t="ker" data-n="Kernel"><i>🐞</i>Kernel<small></small></button><button data-t="aju" data-n="Ajustes"><i>⚙️</i>Ajustes<small></small></button><button data-t="app" data-n="Apps"><i>🧩</i>Apps<small></small></button></nav><main><div class="top"><h2 id="ttl">Casa</h2><span><span class="pill" id="who"></span> <span class="pill" id="st"></span> <button class="b" onclick="sb&&sb.auth.signOut().then(()=>location.reload())">Salir</button></span></div>
@@ -52,7 +47,7 @@ select,input.n{background:#fff;color:var(--t);border:1px solid var(--bd);border-
 <div class="kpis" id="kp"></div><div class="grid"><div class="card"><h3>Procesos</h3><div id="rps"></div></div><div class="card"><h3>Dispositivos</h3><div id="rdv"></div></div><div class="card ev"><h3>Últimos eventos</h3><div id="rev"></div></div></div></section>
 <section class="tab" id="t-ctl"><div class="grid"><div class="card"><h3>Procesos</h3><button class="b" onclick="sh('create proc'+K.pid+' '+(1+K.pid%3)+' 2')">➕ Crear proceso</button><select id="sch" onchange="sh('sched '+this.value)"><option value="prio">Prioridad</option><option value="rr">Round Robin</option></select><div id="ps"></div></div><div class="card"><h3>Línea de tiempo del scheduler</h3><div class="gantt" id="gt"></div></div></div></section>
 <section class="tab" id="t-dis"><div class="card"><h3>Dispositivos del robot</h3><div id="dv"></div></div></section>
-<section class="tab" id="t-twin"><div class="grid"><div class="card"><h3>🏡 Gemelo digital · SmartHome</h3><p class="mu">Selecciona una habitación para inspeccionar su estado y controlar los dispositivos asociados.</p><div class="house-scene"><svg viewBox="0 0 620 410" role="img" aria-label="Plano interactivo de la casa inteligente"><defs><filter id="softShadow"><feDropShadow dx="0" dy="5" stdDeviation="7" flood-color="#7c77bb" flood-opacity=".18"/></filter></defs><g id="houseRooms" filter="url(#softShadow)"></g><path d="M30 34 L310 6 L590 34" fill="none" stroke="#a78bfa" stroke-width="7" stroke-linecap="round"/><text x="310" y="32" text-anchor="middle" fill="#6d59aa" font-size="14" font-weight="bold">ROBOTOS · SMART HOME</text></svg></div><p class="help-note">Representación interactiva basada en los dispositivos disponibles. No es un modelo físico 3D ni un sensor en tiempo real.</p></div><div class="card"><h3>✨ Panel de habitación</h3><div id="houseDetail" class="house-detail"></div><div id="houseSummary" class="house-detail"></div><div class="help-note">Los cambios de dispositivos respetan los permisos del rol actual.</div></div></div></section>
+<section class="tab" id="t-twin"><div class="grid"><div class="card"><h3>Gemelo digital · patrulla de Robi</h3><svg id="twin" viewBox="0 0 400 260"><ellipse cx="200" cy="130" rx="150" ry="85" fill="none" stroke="#818cf8aa" stroke-dasharray="6 6"/><g id="obs"></g><g id="rb"><path id="cone" d="M0 0L46-14L46 14Z" fill="#22d3a633"/><circle r="11" fill="#22d3a6"/><rect x="2" y="-4" width="12" height="8" rx="3" fill="#07322a"/></g></svg><p id="tw"></p></div><div class="card"><h3>Estado del robot</h3><div id="tst"></div></div></div></section>
 <section class="tab" id="t-hw"><div class="card"><h3>Hardware y drivers</h3><div id="hw"></div></div></section>
 <section class="tab" id="t-dia"><div class="grid"><div class="card"><h3>Escenarios de falla</h3><p class="mu">El sistema detecta, registra, alerta, prioriza y responde.</p><button class="b" onclick="sh('fault sensor')">📡 Sensor de distancia</button><button class="b" onclick="sh('fault motor')">⚙️ Motor detenido</button><button class="b" onclick="sh('fault comms')">📶 Pérdida de comunicación</button><br><button class="b" onclick="sh('recover sensor');sh('recover motor');sh('recover comms')">✅ Recuperar todo</button><div id="dg"></div></div>
 <div class="card"><h3>Deadlock</h3><button class="b" onclick="sh('deadlock')">🔒 Generar deadlock</button><div id="dl"></div></div><div class="card"><h3>Tareas de tiempo real</h3><button class="b" onclick="sh('rtos')">⏱️ Ejecutar tareas</button><div id="rt"></div></div></div></section>
@@ -70,7 +65,7 @@ const K={booted:false,tick:0,pid:1,procs:[],sched:'prio',q:2,quantum:0,ev:[],fil
 const OB=[40,140,230,320],ICO={camera:'📷',sensor:'📡',motor:'⚙️',comms:'📶',power:'🔋',nav:'🧭'};
 const log=(l,m)=>{K.ev.unshift(new Date().toLocaleTimeString()+' ['+l+'] '+m);K.ev.length=50;dbLog(l,m);draw()};
 const out=t=>{const e=$('#term');e.textContent+=t+'\n';e.scrollTop=1e9};
-function alloc(k,o){if(!Number.isInteger(k)||k<1||k>64)return -1;for(let i=0;i<=64-k;i++)if(K.mem.slice(i,i+k).every(x=>x===null)){for(let j=i;j<i+k;j++)K.mem[j]=o;return i}return -1}
+function alloc(k,o){for(let i=0;i<=64-k;i++)if(K.mem.slice(i,i+k).every(x=>x===null)){for(let j=i;j<i+k;j++)K.mem[j]=o;return i}return -1}
 const free=o=>{const n=K.mem.filter(x=>x===o).length;K.mem=K.mem.map(x=>x===o?null:x);return n};
 async function boot(){K.booted=false;K.procs=[];K.pid=1;K.tick=0;K.mc=1;K.dl=null;K.hist=[];K.inc=[];K.safe='';K.bat=100;K.mem=Array(64).fill(null);K.files=['/system/','/apps/','/users/','/drivers/','/config/','/logs/'];
 K.dev=[['Cámara frontal','camera'],['Sensor de distancia','sensor'],['Motor izquierdo','motor'],['Motor derecho','motor'],['Módulo de comunicación','comms'],['Batería','power'],['GPS y navegación','nav']].map(([n,t])=>({n,t,s:'ONLINE'}));
@@ -85,7 +80,7 @@ for(const s in g){let c=s,seen=[];while(c&&!seen.includes(c)){seen.push(c);c=g[c
 const FL={sensor:['Sensor de distancia','obstacle_detection',1,'Sensor de distancia sin señal','Modo seguro: velocidad reducida y detección de obstáculos con prioridad máxima'],motor:['Motor izquierdo','motor_control',1,'Motor detenido','Robot detenido en lugar seguro y alerta enviada al operador'],comms:['Módulo de comunicación','telemetry',5,'Pérdida de comunicación','Modo autónomo: el robot regresa a su base sin telemetría']};
 const SYS={
 help(){return'create <n> [prio 1-3] [bloques] | run <pid> | kill <pid> | ps | sched prio|rr | mem | alloc <bloques> | free <M#> | touch <ruta> | ls | devices | disconnect <n> | connect <n> | deadlock | rtos | fault sensor|motor|comms | recover sensor|motor|comms | logs | reboot | clear'},
-create(n='proc',pr=2,m=1){const k=Number(m),pid=K.pid;if(!Number.isInteger(k)||k<1||k>64)throw Error('Bloques inválidos (1-64)');if(alloc(k,pid)<0)throw Error('Memoria insuficiente');K.pid++;K.procs.push({pid,n,prio:+pr,state:'NEW',rem:6,cpu:0,mem:k,last:0});log('PROC','Proceso '+n+' creado con PID '+pid);return'Proceso '+n+' creado con PID '+pid+' en el kernel'},
+create(n='proc',pr=2,m=1){const k=Math.max(1,+m),pid=K.pid;if(alloc(k,pid)<0)throw Error('Memoria insuficiente');K.pid++;K.procs.push({pid,n,prio:+pr,state:'NEW',rem:6,cpu:0,mem:k,last:0});log('PROC','Proceso '+n+' creado con PID '+pid);return'Proceso '+n+' creado con PID '+pid+' en el kernel'},
 run(pid){const p=P(pid);if(p.state==='TERMINATED')throw Error('El proceso terminó');p.state='READY';log('PROC','PID '+pid+' listo para ejecutar');return'PID '+pid+' -> READY'},
 kill(pid){fin(P(pid),'finalizado');return'PID '+pid+' finalizado'},
 ps(){return K.procs.map(p=>p.pid+' '+p.n+' '+p.state+' prio='+p.prio+' cpu='+p.cpu+' mem='+p.mem).join('\n')||'sin procesos'},
@@ -112,8 +107,8 @@ logs(){return K.ev.slice(0,10).join('\n')},
 clear(){$('#term').textContent='';return''},
 async reboot(){out('Reiniciando...');await boot();return'Ciclo de arranque ejecutado de nuevo (arranque n.° '+K.boots+')'}};
 async function sh(line){line=line.trim();if(!line)return;out('$ '+line);const[c,...a]=line.split(/\s+/);
-try{if(!K.booted&&c!=='reboot')throw Error('Kernel iniciando, espera un momento');if(!SYS[c])throw Error('comando desconocido: '+c);const d=perm(c,a);if(d)return deny(c,d);const r=await SYS[c](...a);if(r)out(r);sync()}
-catch(e){out('ERROR: '+e.message);log('ERROR',e.message)}}
+try{if(!K.booted&&c!=='reboot')throw Error('Kernel iniciando, espera un momento');if(!SYS[c])throw Error('comando desconocido: '+c);const d=perm(c,a);if(d)return deny(c,d);const r=await SYS[c](...a);if(r){out(r);if(!$('#t-ter').classList.contains('on'))toast(r.split('\n')[0])}sync()}
+catch(e){out('ERROR: '+e.message);toast('⚠️ '+e.message);log('ERROR',e.message)}}
 const on=n=>(K.dev.find(d=>d.n===n)||{}).s==='ONLINE';
 setInterval(()=>{if(!K.booted)return;K.tick++;let r=K.procs.find(p=>p.state==='RUNNING');
 if(r&&(K.sched==='prio'||K.quantum<=0)){r.state='READY';r=null}
@@ -126,7 +121,7 @@ if(mv){const near=OB.find(o=>{const d=(o-K.ang+360)%360;return d>0&&d<28});
 if(near!==undefined){if(on('Sensor de distancia')){sp=2.5;K.hit='ok'}else{K.hit='bad';if(!K.col){K.col=1;log('ERROR','Colisión: el sensor de distancia no respondió')}}}else K.col=0}
 K.ang=(K.ang+sp)%360;K.bat=Math.max(0,K.bat-(mv?.08:.02));if(K.tick%15===0)sync();draw()},700);
 const DRV={camera:'cam_v4l.drv',sensor:'ultra_hc.drv',motor:'pwm_motor.drv',comms:'wifi_link.drv',power:'bms.drv',nav:'gps_imu.drv'};
-const APPS=[['Navegación','navigation',2,10,'🧭'],['Visión IA','ai_vision',4,14,'🧠'],['Cámara','camera_stream',3,12,'📷'],['Telemetría','telemetry',5,4,'📡'],['Control de motores','motor_control',1,6,'⚙️'],['Obstáculos','obstacle_detection',1,8,'🛑']];
+const APPS=[['Navegación','navigation',2,4,'🧭'],['Visión IA','ai_vision',4,6,'🧠'],['Cámara','camera_stream',3,4,'📷'],['Telemetría','telemetry',5,2,'📡'],['Control de motores','motor_control',1,3,'⚙️'],['Obstáculos','obstacle_detection',1,3,'🛑']];
 function toast(m){const e=document.createElement('div');e.className='tst';e.textContent=m;$('#toast').appendChild(e);setTimeout(()=>e.remove(),5000)}
 function extra(){$('#kp2').innerHTML=$('#kp').innerHTML;
 $('#rbq').textContent=!K.booted?'Despertando mis sistemas…':K.safe?'⚠️ '+K.safe:K.bat<20?'Batería baja, necesito cargarme 🔋':'Todo en orden. Patrullo la casa y estoy listo para tus órdenes.';
@@ -135,25 +130,6 @@ $('#dg').innerHTML=K.inc.length?K.inc.map(i=>'<div class="inc"><b class="'+(i.re
 $('#ap').innerHTML=APPS.map(a=>'<div class="app-i"><i>'+a[4]+'</i><b>'+a[0]+'</b><small>'+a[1]+'</small><button class="b" onclick="sh(\'create '+a[1]+' '+a[2]+' '+a[3]+'\')">Abrir</button></div>').join('')}
 const hue=o=>o==='kernel'?'#5b6fa8':'hsl('+((parseInt(String(o).replace(/\D/g,''))||0)*67%360)+',65%,55%)';
 const ring=(v,c,l)=>'<div class="card kpi"><div class="ring" style="--p:'+v+';--c:'+c+'"><b>'+v+'%</b></div><small>'+l+'</small></div>';
-
-const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const ROOMS=[
-{id:'sala',name:'Sala',icon:'🛋️',x:24,y:52,w:270,h:155,color:'#dbeafe',types:['motor','nav']},
-{id:'cocina',name:'Cocina',icon:'🍳',x:304,y:52,w:286,h:155,color:'#ede9fe',types:['power']},
-{id:'entrada',name:'Entrada',icon:'🚪',x:24,y:218,w:170,h:158,color:'#fce7f3',types:['sensor']},
-{id:'estudio',name:'Estudio',icon:'💻',x:204,y:218,w:188,h:158,color:'#e0f2fe',types:['comms']},
-{id:'seguridad',name:'Seguridad',icon:'📹',x:402,y:218,w:188,h:158,color:'#dcfce7',types:['camera']}
-];
-let selectedRoom='sala';
-function houseDevices(room){return K.dev.map((d,i)=>({...d,i})).filter(d=>room.types.includes(d.t))}
-function selectRoom(id){selectedRoom=id;drawHouse()}
-function drawHouse(){const target=$('#houseRooms');if(!target)return;
-target.innerHTML=ROOMS.map(r=>{const ds=houseDevices(r),errors=ds.filter(d=>d.s!=='ONLINE').length;const color=errors?'#ffe0e5':r.color;return `<g class="room ${selectedRoom===r.id?'selected':''}" data-room="${r.id}" tabindex="0" role="button" aria-label="${r.name}" onclick="selectRoom('${r.id}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();selectRoom('${r.id}')}" ><rect class="floor" x="${r.x}" y="${r.y}" width="${r.w}" height="${r.h}" rx="18" fill="${color}"/><text x="${r.x+20}" y="${r.y+31}">${r.name}</text><text class="room-icon" x="${r.x+r.w/2}" y="${r.y+r.h/2+8}" text-anchor="middle">${r.icon}</text><text class="room-status" x="${r.x+20}" y="${r.y+r.h-18}">${ds.length} dispositivo(s) · ${errors?errors+' alerta(s)':'Operativo'}</text></g>`}).join('');
-const r=ROOMS.find(r=>r.id===selectedRoom)||ROOMS[0],ds=houseDevices(r);
-$('#houseDetail').innerHTML=`<h3>${r.icon} ${r.name}</h3>`+(ds.length?ds.map(d=>`<div class="dev"><span class="ic">${ICO[d.t]||'🔌'}</span><span class="n">${esc(d.n)}<br><small>${esc(d.t)}</small></span><b class="${d.s==='ONLINE'?'ok':'bad'}">${esc(d.s)}</b><button class="b" ${ROLE!=='ADMIN'?'disabled title="Solo ADMIN"':''} onclick="sh('${d.s==='ONLINE'?'disconnect':'connect'} ${d.i}')">${d.s==='ONLINE'?'Desconectar':'Conectar'}</button></div>`).join(''):'<p class="mu">Sin dispositivos asociados</p>');
-const ok=K.dev.filter(d=>d.s==='ONLINE').length;$('#houseSummary').innerHTML=`<b>Estado general</b><p>${ok} de ${K.dev.length} dispositivos conectados</p><p>Kernel: ${K.booted?'activo':'iniciando'} · Tick ${K.tick}</p><p class="mu">${esc(K.safe||'Sin alertas activas')}</p>`;
-}
-
 function draw(){if(!$('#ps'))return;
 const used=K.mem.filter(x=>x!==null).length,cpu=Math.min(100,K.procs.filter(p=>p.state==='RUNNING').length*55+K.procs.filter(p=>p.state==='READY').length*9);
 $('#st').innerHTML=K.booted?'<span class="ok">● RUNNING</span> · tick '+K.tick+' · '+(K.sched==='rr'?'Round Robin':'Prioridad'):'<span class="wn">● ARRANCANDO</span>';
@@ -161,14 +137,19 @@ $('#kp').innerHTML=ring(cpu,'#6c8cff','CPU')+ring(Math.round(used/64*100),'#22d3
 const sc=s=>s==='RUNNING'?'ok':s==='WAITING'?'bad':'mu';
 $('#rps').innerHTML='<table>'+K.procs.filter(p=>p.state!=='TERMINATED').slice(0,6).map(p=>'<tr><td>'+p.pid+' '+p.n+'</td><td class="'+sc(p.state)+'">'+p.state+'</td></tr>').join('')+'</table>';
 $('#rdv').innerHTML=K.dev.map(d=>'<div><span class="dot" style="background:'+(d.s==='ONLINE'?'#22d3a6':'#ff5d73')+'"></span>'+d.n+'</div>').join('');
-$('#rev').innerHTML=K.ev.slice(0,6).map(e=>'<div>'+esc(e)+'</div>').join('');$('#ev').innerHTML=K.ev.map(e=>'<div>'+esc(e)+'</div>').join('');
+$('#rev').innerHTML=K.ev.slice(0,6).map(e=>'<div>'+e+'</div>').join('');$('#ev').innerHTML=K.ev.map(e=>'<div>'+e+'</div>').join('');
 $('#kst').innerHTML=K.booted?'<span class="ok">Kernel activo</span> · arranque n.° '+K.boots+' · '+K.procs.length+' procesos creados':'<span class="wn">Arrancando…</span>';
 $('#ps').innerHTML='<table><tr><th>PID</th><th>Nombre</th><th>Estado</th><th>CPU</th><th></th></tr>'+K.procs.map(p=>'<tr><td>'+p.pid+'</td><td>'+p.n+' <small>p'+p.prio+'</small></td><td class="'+sc(p.state)+'">'+p.state+'</td><td>'+p.cpu+'</td><td>'+(p.state==='TERMINATED'?'':'<button class="b" onclick="sh(\'run '+p.pid+'\')">▶</button><button class="b" onclick="sh(\'kill '+p.pid+'\')">⏹</button>')+'</td></tr>').join('')+'</table>';
 const ids=[...new Set(K.hist.filter(x=>x))];$('#gt').innerHTML=ids.map(id=>'<span>PID '+id+'</span><div class="r">'+K.hist.map(h=>'<i style="'+(h===id?'background:'+hue(id):'')+'"></i>').join('')+'</div>').join('')||'<span class="mu">Ejecuta un proceso para verlo</span>';
 $('#mem').innerHTML=K.mem.map((o,i)=>'<i title="bloque '+i+': '+(o===null?'libre':o)+'" style="'+(o===null?'':'background:'+hue(o))+'"></i>').join('');$('#ms').textContent=(64-used)+' bloques libres de 64 · gris azulado: kernel';
-$('#fs').innerHTML=K.files.map(f=>'<div>'+(f.endsWith('/')?'📁 ':'📄 ')+esc(f)+'</div>').join('');
+$('#fs').innerHTML=K.files.map(f=>'<div>'+(f.endsWith('/')?'📁 ':'📄 ')+f+'</div>').join('');
 $('#dv').innerHTML=K.dev.map((d,i)=>'<div class="dev"><span class="ic">'+ICO[d.t]+'</span><span class="n">'+d.n+'</span><b class="'+(d.s==='ONLINE'?'ok':'bad')+'">'+d.s+'</b><button class="b" onclick="sh(\''+(d.s==='ONLINE'?'disconnect ':'connect ')+i+'\')">'+(d.s==='ONLINE'?'Desconectar':'Conectar')+'</button></div>').join('');
-drawHouse();
+const a=K.ang*Math.PI/180,x=200+150*Math.cos(a),y=130+85*Math.sin(a);
+$('#rb').style.transform='translate('+x+'px,'+y+'px) rotate('+(K.ang+90)+'deg)';
+$('#obs').innerHTML=OB.map(o=>{const q=o*Math.PI/180;return'<rect x="'+(200+150*Math.cos(q)-9)+'" y="'+(130+85*Math.sin(q)-9)+'" width="18" height="18" rx="4" fill="#ff5d7355" stroke="#ff5d73"/>'}).join('');
+$('#cone').setAttribute('fill',on('Sensor de distancia')?'#22d3a633':'#ffffff11');
+$('#tw').innerHTML=!(on('Motor izquierdo')&&on('Motor derecho'))?'<span class="bad">Motor detenido: el robot no avanza</span>':K.hit==='ok'?'<span class="wn">Obstáculo detectado: reduce la velocidad</span>':K.hit==='bad'?'<span class="bad">Colisión: sensor de distancia sin señal</span>':'<span class="ok">Patrullando con normalidad</span>';
+$('#tst').innerHTML=K.dev.map(d=>'<div><span class="dot" style="background:'+(d.s==='ONLINE'?'#22d3a6':'#ff5d73')+'"></span>'+d.n+' · '+d.s+'</div>').join('')+'<p class="mu">Batería '+Math.round(K.bat)+'%. Prueba apagar un motor o el sensor desde Dispositivos.</p>';
 extra();const c=cyc();$('#dl').innerHTML=c?'<p class="bad">Deadlock: PID '+c.join(' → ')+' → PID '+c[0]+'</p>':'<p class="mu">Sin bloqueos</p>';
 $('#rt').innerHTML='<table><tr><th>Tarea</th><th>Resp.</th><th>Plazo</th><th></th></tr>'+K.rt.map(t=>'<tr><td>'+t.n+'</td><td>'+(t.r??'-')+'</td><td>'+t.dl+'</td><td class="'+(t.ok?'ok':'bad')+'">'+(t.r==null?'':t.ok?'OK':'Tarde')+'</td></tr>').join('')+'</table>'}
 document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{document.querySelectorAll('nav button,.tab').forEach(e=>e.classList.remove('on'));b.classList.add('on');$('#t-'+b.dataset.t).classList.add('on');$('#ttl').textContent=b.dataset.n;draw()});
@@ -181,21 +162,23 @@ const dbLog=(l,m)=>{if(sb&&U)q(sb.from('logs').insert({level:LV[l]||'INFO',sourc
 function perm(c,a){const n=NEED[c];if(n===undefined)return null;if(RANK[ROLE]<n)return'el rol '+ROLE+' no tiene permisos suficientes para "'+c+'"';
 if(ROLE==='USER'&&c==='run'){const p=K.procs.find(x=>x.pid==a[0]);if(p&&p.crit)return'el proceso '+p.n+' es crítico'}
 if(ROLE==='USER'&&c==='touch'&&!(a[0]||'').startsWith('/users/'))return'USER solo puede crear archivos en /users/';return null}
-function deny(c,why){out('❌ ACCESO DENEGADO: '+why);log('SEGURIDAD',(U?U.email:'usuario')+' intentó "'+c+'": '+why);
+function deny(c,why){out('❌ ACCESO DENEGADO: '+why);toast('❌ ACCESO DENEGADO: '+why);log('SEGURIDAD',(U?U.email:'usuario')+' intentó "'+c+'": '+why);
 if(sb&&U)q(sb.from('events').insert({type:'ACCESS_DENIED',source:'security',severity:'WARNING',description:U.email+' ('+ROLE+') intentó "'+c+'": '+why,user_id:U.id}))}
 async function hydrate(){if(!sb||!U)return;
 const[ps,ds,fl,mb]=await Promise.all([['processes','pid'],['devices','id'],['files','path'],['memory_blocks','start_kb']].map(([t,o])=>sb.from(t).select('*').order(o)));
 if(ps.data&&ps.data.length){K.procs=ps.data.map(r=>({pid:r.pid,n:r.name,prio:r.priority,state:r.state,rem:r.cpu_remaining,tot:r.cpu_required,cpu:Number(r.cpu_usage),mem:r.memory_kb/16,last:0,crit:r.is_critical}));K.pid=Math.max(...K.procs.map(p=>p.pid))+1}
-if(mb.data&&mb.data.length){K.mem=Array(64).fill(null);for(const b of mb.data){const o=b.owner==='kernel'?'kernel':/^P\d+$/.test(b.owner)?+b.owner.slice(1):b.owner;for(let i=Math.max(0,Math.floor(b.start_kb/16));i<Math.min(64,Math.ceil((b.start_kb+b.size_kb)/16));i++)K.mem[i]=o}}
+if(mb.data&&mb.data.length){K.mem=Array(64).fill(null);for(const b of mb.data){const o=b.owner==='kernel'?'kernel':/^P\d+$/.test(b.owner)?+b.owner.slice(1):b.owner;for(let i=b.start_kb/16;i<(b.start_kb+b.size_kb)/16;i++)K.mem[i]=o}}
 if(ds.data&&ds.data.length)K.dev=ds.data.map(r=>({n:r.name,t:r.type,s:r.status}));
 if(fl.data&&fl.data.length)K.files=[...new Set([...K.files,...fl.data.map(r=>r.path)])]}
-let st=0;
-function sync(){if(!sb||!U||ROLE!=='ADMIN'||!K.booted)return;clearTimeout(st);st=setTimeout(async()=>{
-const now=new Date().toISOString();
+let st=0;function sync(){if(!sb||!U||ROLE==='GUEST'||!K.booted)return;clearTimeout(st);st=setTimeout(async()=>{
+if(ROLE==='ADMIN'){const now=new Date().toISOString();
 if(K.procs.length)await q(sb.from('processes').upsert(K.procs.map(p=>({pid:p.pid,name:p.n,priority:Math.min(5,Math.max(1,p.prio)),state:p.state,cpu_required:p.tot||6,cpu_remaining:Math.max(0,p.rem),cpu_usage:p.cpu,memory_kb:Math.max(1,p.mem)*16,is_critical:!!p.crit,updated_at:now})),{onConflict:'pid'}));
-for(const d of K.dev)await q(sb.from('devices').update({status:d.s,last_event:d.s==='ONLINE'?'Operativo':'Desconectado',updated_at:now}).eq('name',d.n));
-for(const f of K.pf.splice(0))await q(sb.from('files').upsert({path:f,content:'',size_bytes:0},{onConflict:'path'}));
-},1500)}
+const bl=[];let s=null;K.mem.forEach((o,i)=>{if(s&&s.o===o)s.n++;else{if(s)bl.push(s);s=o===null?null:{o,i,n:1}}});if(s)bl.push(s);
+await q(sb.from('memory_blocks').delete().neq('id',0));
+if(bl.length)await q(sb.from('memory_blocks').insert(bl.map(b=>({owner:b.o==='kernel'?'kernel':typeof b.o==='number'?'P'+b.o:b.o,start_kb:b.i*16,size_kb:b.n*16}))));
+for(const d of K.dev)await q(sb.from('devices').update({status:d.s,last_event:d.s==='ONLINE'?'Operativo':'Desconectado',updated_at:now}).eq('name',d.n))}
+else for(const p of K.procs.filter(x=>!x.crit))await q(sb.from('processes').update({state:p.state,cpu_remaining:Math.max(0,p.rem),cpu_usage:p.cpu}).eq('pid',p.pid));
+for(const f of K.pf.splice(0))await q(sb.from('files').insert({path:f,content:'',size_bytes:0}))},1200)}
 async function enter(u){U=u;const{data}=await sb.from('profiles').select('role').eq('id',u.id).single();ROLE=data?data.role:'GUEST';
 $('#lg').style.display='none';$('#who').textContent=u.email+' · '+ROLE;out('Sesión iniciada como '+ROLE);await boot()}
 $('#go').onclick=async()=>{if(!sb)return;const{data,error}=await sb.auth.signInWithPassword({email:$('#em').value.trim(),password:$('#pw').value});
@@ -204,6 +187,6 @@ $('#su').onclick=async()=>{if(!sb)return;const em=$('#em').value.trim(),pw=$('#p
 const{data,error}=await sb.auth.signUp({email:em,password:pw});if(error){$('#lm').textContent=error.message;return}
 if(data.session)await enter(data.user);else{$('#lm').className='ok';$('#lm').textContent='Cuenta creada. Revisa tu correo para confirmarla y luego inicia sesión.'}};
 async function init(){if(!CFG.anonKey||CFG.anonKey.startsWith('PEGA')){$('#lm').textContent='Falta la clave anon en config.js';return}
-if(typeof supabase==='undefined'){$('#lm').textContent='No se pudo cargar Supabase JS. Comprueba tu conexión a Internet.';return}sb=supabase.createClient(CFG.url,CFG.anonKey);const{data:{session}}=await sb.auth.getSession();if(session)await enter(session.user)}
+sb=supabase.createClient(CFG.url,CFG.anonKey);const{data:{session}}=await sb.auth.getSession();if(session)await enter(session.user)}
 out('RobotOS. Escribe help para ver los comandos.');init();
 </script></body></html>
